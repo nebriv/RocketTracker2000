@@ -34,14 +34,15 @@ class RocketTracker:
 
     def __init__(self):
         atexit.register(self.exit_handler)
-        video_tracker = Thread(target=self.video_tracker)
-        video_tracker.start()
         keyboard_monitor = Thread(target=self.keyboard_monitor)
         keyboard_monitor.start()
+        video_tracker = Thread(target=self.video_tracker)
+        video_tracker.start()
+
 
     def keyPress(self, key):
         if key == 'q':
-            self.exit = True
+            print(key)
 
 
     def keyboard_monitor(self):
@@ -62,8 +63,13 @@ class RocketTracker:
         # dc = DominantColors(frame, clusters=1)
         # colors = dc.dominantColors()
 
+
         print("Waiting for blue screen to clear.")
-        time.sleep(25)
+        time.sleep(15)
+        # while self.exit == False:
+        #     print("Hey")
+        #     print(self.exit)
+        #     time.sleep(1)
 
 
         # if frame.shape[0]+500 > screensize[0]:
@@ -76,8 +82,10 @@ class RocketTracker:
         # frame = cv2.resize(frame, (1660, 1240))
         bbox = cv2.selectROI(frame)
         ok = tracker.init(frame, bbox)
+
+        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+
         while not self.exit:
-            self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
             ok, frame = video.read()
             # if frame.shape[0]+500 > screensize[0]:
             #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
@@ -89,8 +97,10 @@ class RocketTracker:
                 (x, y, w, h) = [int(v) for v in bbox]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
 
-
-                self.controller.follow(bbox)
+                try:
+                    self.controller.follow(bbox)
+                except Exception as err:
+                    print("CAUGHT ERROR: %s" % err)
 
             else:
                 cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
