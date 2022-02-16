@@ -6,8 +6,16 @@ import itertools as it
 import ctypes
 from queue import Queue
 from simple_pid import PID
+from utils.VISCA_controller import controller
+import time
+from visca_over_ip import Camera
 
+WEBCAM = 0
 
+COMM_PORT = "COM3"
+# OR IP
+IP_ADDRESS = "192.168.1.191"
+PORT = 52381
 
 
 user32 = ctypes.windll.user32
@@ -36,6 +44,8 @@ class RocketTracker:
     y_changes = Queue()
 
     def __init__(self):
+
+
         video_tracker = Thread(target=self.video_tracker)
         ptz_controller = Thread(target=self.ptz_controller)
         video_tracker.start()
@@ -43,19 +53,20 @@ class RocketTracker:
 
     def video_tracker(self):
         tracker = cv2.TrackerCSRT_create()
-        video = cv2.VideoCapture('test_videos/3.mp4')
+        video = cv2.VideoCapture(WEBCAM)
 
 
 
         x_pid = PID(1, 0.1, 0.05, setpoint=0)
         x_pid.sample_time = 1 / round(video.get(cv2.CAP_PROP_FPS))
+
         y_pid = PID(1, 0.1, 0.05, setpoint=0)
         y_pid.sample_time = 1 / round(video.get(cv2.CAP_PROP_FPS))
 
         ret, frame = video.read()
 
-        print(frame.shape)
-        print(screensize[0])
+        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+
 
         if frame.shape[0]+500 > screensize[0]:
             print("RESIZING")
@@ -80,24 +91,32 @@ class RocketTracker:
                 cv2.circle(frame, (c_x, c_y), 1, (0, 0, 255), 5)
 
                 # Get X Distance from Center
+                self.controller.follow(bbox)
 
-
-                print("Y Center: %s" % (int(frame.shape[0]) / 2))
-                print("Target Y: %s" % (c_y))
-                print("Distance from Y center: %s" % (c_y - (frame.shape[0] / 2)))
-
-                print("X Center: %s" % (int(frame.shape[1]) / 2))
-                print("Target X: %s" % (c_x))
-                print("Distance from X center: %s" % (c_x - (frame.shape[1] / 2)))
-
-                if c_x+10 > frame.shape[1] or c_x-10 < frame.shape[1]:
-                    x_control = x_pid(c_x)
-                    print("PID X: %s" % x_control)
-
-                if c_y+10 > frame.shape[0] or c_y-10 < frame.shape[0]:
-                    y_control = y_pid(c_y)
-                    print("PID Y: %s" % y_control)
-                print("")
+                # print("Y Center: %s" % (int(frame.shape[0]) / 2))
+                # print("Target Y: %s" % (c_y))
+                # print("Distance from Y center: %s" % (c_y - (frame.shape[0] / 2)))
+                #
+                # print("X Center: %s" % (int(frame.shape[1]) / 2))
+                # print("Target X: %s" % (c_x))
+                # print("Distance from X center: %s" % (c_x - (frame.shape[1] / 2)))
+                #
+                # if c_x+10 > frame.shape[1]:
+                #     print("Commanding camera left")
+                #
+                # if c_x-10 < frame.shape[1]:
+                #     print("Command camera right")
+                #     x_control = x_pid(c_x)
+                #     print("PID X: %s" % x_control)
+                #
+                # if c_y+10 > frame.shape[0]:
+                #     print("Commanding camera down")
+                #
+                # if c_y-10 < frame.shape[0]:
+                #     print("Command camera up")
+                #     y_control = y_pid(c_y)
+                #     print("PID Y: %s" % y_control)
+                # print("")
                 # c_x, c_y = self.get_changes(c_x, c_y)
                 #
                 #
