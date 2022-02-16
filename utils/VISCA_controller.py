@@ -73,7 +73,7 @@ class controller:
         self.d_gain = 0 #contribution of d component to total error
         self.d_noise_reduction = 1 
         self.m_smooth = 1.0
-        self.length = 5 #history length
+        self.length = 3 #history length
 
         # camera does not move unless error 
         # error is greater than threshold
@@ -206,9 +206,9 @@ class controller:
         else:
             self.z_unsaturated = True
         
-        print("X Error: %s - Y Error: %s" % (x_error, y_error))
+        print("X Error: %s - Y Error: %s - Z Error: %s" % (x_error, y_error, z_error))
 
-        if not self.x_unsaturated or not self.y_unsaturated or not self.z_unsaturated:
+        if not self.x_unsaturated or not self.y_unsaturated:
             print("SATURATION WAAARRRRNIIINNGGGG!!!!!!!!! X: %s Y: %s Z: %s" % (self.x_unsaturated, self.y_unsaturated, self.z_unsaturated))
 
         #build VISCA hex command
