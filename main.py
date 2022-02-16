@@ -59,13 +59,14 @@ class RocketTracker:
     def video_tracker(self):
         tracker = cv2.TrackerCSRT_create()
         video = cv2.VideoCapture(WEBCAM)
-        ret, frame = video.read()
+
         # dc = DominantColors(frame, clusters=1)
         # colors = dc.dominantColors()
 
 
         print("Waiting for blue screen to clear.")
         time.sleep(15)
+        ret, frame = video.read()
         # while self.exit == False:
         #     print("Hey")
         #     print(self.exit)
