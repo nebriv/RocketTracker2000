@@ -9,6 +9,7 @@ from utils.VISCA_controller import controller
 import time
 from utils.utils import DominantColors
 import atexit
+from pynput.keyboard import Key, Listener
 
 WEBCAM = 1
 
@@ -28,10 +29,25 @@ class RocketTracker:
     x_changes = Queue()
     y_changes = Queue()
 
+    exit = False
+    controller = False
+
     def __init__(self):
         atexit.register(self.exit_handler)
         video_tracker = Thread(target=self.video_tracker)
         video_tracker.start()
+        keyboard_monitor = Thread(target=self.keyboard_monitor)
+        keyboard_monitor.start()
+
+    def keyPress(self, key):
+        if key == 'q':
+            self.exit = True
+
+
+    def keyboard_monitor(self):
+        with Listener(on_press=self.keyPress) as listener:
+            listener.join()
+
 
     def exit_handler(self):
         print("Good bye.")
@@ -43,8 +59,8 @@ class RocketTracker:
         tracker = cv2.TrackerCSRT_create()
         video = cv2.VideoCapture('test_videos/3.mp4')
         ret, frame = video.read()
-        dc = DominantColors(frame, clusters=1)
-        colors = dc.dominantColors()
+        # dc = DominantColors(frame, clusters=1)
+        # colors = dc.dominantColors()
 
         print("Waiting for blue screen to clear.")
         time.sleep(15)
@@ -61,7 +77,7 @@ class RocketTracker:
         # frame = cv2.resize(frame, (1660, 1240))
         bbox = cv2.selectROI(frame)
         ok = tracker.init(frame, bbox)
-        while True:
+        while not self.exit:
             ok, frame = video.read()
             # if frame.shape[0]+500 > screensize[0]:
             #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
