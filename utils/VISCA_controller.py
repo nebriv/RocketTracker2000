@@ -138,9 +138,12 @@ class controller:
         x, y, w, h = box
         center_x = x + w/2
         center_y = y + h/2
+        print("Box Center X: %s - Box Center Y: %s" % (center_x, center_y))
+
         x_error = center_x - self.target_x
         y_error = center_y - self.target_y
         z_error = w - self.target_z
+        print("Raw x_error: %s - Raw y_error: %s" % (x_error, y_error))
         
         #calculate PID error
         px, py, pz = self.calculate_p(x_error, y_error, z_error)
