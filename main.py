@@ -63,7 +63,7 @@ class RocketTracker:
         # colors = dc.dominantColors()
 
         print("Waiting for blue screen to clear.")
-        time.sleep(15)
+        time.sleep(25)
 
 
         # if frame.shape[0]+500 > screensize[0]:
