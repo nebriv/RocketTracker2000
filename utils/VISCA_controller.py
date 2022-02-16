@@ -39,9 +39,9 @@ class controller:
             raise ValueError("Missing IP address or serial port.")
 
         #target values in pixel coordinates
-        self.target_x = 250 #int(width/2)
-        self.target_y = 250 #int(height/2)
-        self.target_z = 100 #int(width/12)
+        self.target_x = 640 #int(width/2)
+        self.target_y = 360 #int(height/2)
+        self.target_z = 106 #int(width/12)
         
 
         #motor saturation for integral, stops summing if saturated
@@ -66,19 +66,19 @@ class controller:
         self.shape_list = [0.6, 0.76, 1, 1.32, 1.96, 2.2, 3, 5, 7, 21, 81]
 
         #pan/tilt parameters initial values
-        self.p_gain = 0.4 #contribution of p component to total error
+        self.p_gain = 0.2 #contribution of p component to total error
         self.p_slope = 1.0 # slope of proportional error response
         self.p_shape = 6 # index of shape for proportional error
         self.i_gain = 0 #contribution of i component to total error
         self.d_gain = 0 #contribution of d component to total error
         self.d_noise_reduction = 1 
         self.m_smooth = 1.0
-        self.length = 3 #history length
+        self.length = 5 #history length
 
         # camera does not move unless error 
         # error is greater than threshold
-        self.x_threshold = 0.2 
-        self.y_threshold = 0.2 
+        self.x_threshold = 0.4
+        self.y_threshold = 0.4
 
         #zoom parameters initial values
         self.z_p_gain = 1
@@ -166,7 +166,14 @@ class controller:
 
         self.move(x_pid_error, y_pid_error, z_pid_error)
 
-        
+    def camera_go_home(self):
+        self.send_command('81010604FF')
+
+    def camera_cancel(self):
+        self.send_command('81010001FF')
+
+    def camera_reset(self):
+        self.send_command('81010605FF')
 
     def move(self, x_error, y_error, z_error):
         """

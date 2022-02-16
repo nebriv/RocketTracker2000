@@ -2,3 +2,5 @@ test_videos/
 .idea/
 venv/
 goturn.*
+
+*.pyc
