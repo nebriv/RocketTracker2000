@@ -59,7 +59,7 @@ class RocketTracker:
     def video_tracker(self):
         tracker = cv2.TrackerCSRT_create()
         video = cv2.VideoCapture(WEBCAM)
-
+        ret, frame = video.read()
         # dc = DominantColors(frame, clusters=1)
         # colors = dc.dominantColors()
 
