@@ -142,8 +142,9 @@ class controller:
 
         x_error = center_x - self.target_x
         y_error = center_y - self.target_y
-        z_error = w - self.target_z
-        print("Raw x_error: %s - Raw y_error: %s" % (x_error, y_error))
+        # z_error = w - self.target_z
+        z_error = 0
+        print("Raw x_error: %s - Raw y_error: %s - Raw z_error: %s" % (x_error, y_error, z_error))
         
         #calculate PID error
         px, py, pz = self.calculate_p(x_error, y_error, z_error)
@@ -177,6 +178,9 @@ class controller:
 
     def camera_reset(self):
         self.send_command('81010605FF')
+
+    def camera_enable_autofocus(self):
+        self.send_command('8101043802FF')
 
     def move(self, x_error, y_error, z_error):
         """

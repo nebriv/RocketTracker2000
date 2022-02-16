@@ -11,6 +11,8 @@ from utils.utils import DominantColors
 import atexit
 from pynput.keyboard import Key, Listener
 
+testing = False
+
 WEBCAM = 1
 
 COMM_PORT = "COM3"
@@ -34,15 +36,17 @@ class RocketTracker:
 
     def __init__(self):
         atexit.register(self.exit_handler)
-        keyboard_monitor = Thread(target=self.keyboard_monitor)
+        keyboard_monitor = Thread(target=self.keyboard_monitor, daemon=True)
         keyboard_monitor.start()
-        video_tracker = Thread(target=self.video_tracker)
+        video_tracker = Thread(target=self.video_tracker, daemon=True)
         video_tracker.start()
+        video_tracker.join()
 
 
     def keyPress(self, key):
+        key = str(key).replace("'", "")
         if key == 'q':
-            print(key)
+            self.exit = True
 
 
     def keyboard_monitor(self):
@@ -52,20 +56,41 @@ class RocketTracker:
 
     def exit_handler(self):
         print("Good bye.")
+        time.sleep(2)
         if self.controller:
             self.controller.camera_cancel()
             self.controller.camera_go_home()
 
     def video_tracker(self):
+        if testing:
+            print("TESTING MODE ENABLED!")
+        else:
+            print("TEST MODE IS NOT ENABLED")
+
         tracker = cv2.TrackerCSRT_create()
-        video = cv2.VideoCapture(WEBCAM)
+        if testing:
+            video = cv2.VideoCapture("test_videos/3.mp4")
+        else:
+            video = cv2.VideoCapture(WEBCAM)
+
         ret, frame = video.read()
-        # dc = DominantColors(frame, clusters=1)
-        # colors = dc.dominantColors()
+        if not ret:
+            print("Unable to get video feed")
+            exit()
+        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+        self.controller.camera_enable_autofocus()
+
+        dc = DominantColors(frame, 1)
+        colors = dc.dominantColors()
+
+        if not testing:
+            print("Waiting for blue screen to clear.")
+            while not self.exit and colors[0][2] > 200:
+                ret, frame = video.read()
+                dc = DominantColors(frame, 1)
+                colors = dc.dominantColors()
 
 
-        print("Waiting for blue screen to clear.")
-        time.sleep(15)
         ret, frame = video.read()
         # while self.exit == False:
         #     print("Hey")
@@ -78,37 +103,39 @@ class RocketTracker:
         #     print()
         #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
 
-
-
         # frame = cv2.resize(frame, (1660, 1240))
         bbox = cv2.selectROI(frame)
         ok = tracker.init(frame, bbox)
 
-        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+        try:
+            while not self.exit:
+                ok, frame = video.read()
+                # if frame.shape[0]+500 > screensize[0]:
+                #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
+                # frame = cv2.resize(frame, (1660, 1240))
+                if not ok:
+                    break
+                ok, bbox = tracker.update(frame)
+                if ok:
+                    (x, y, w, h) = [int(v) for v in bbox]
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
 
-        while not self.exit:
-            ok, frame = video.read()
-            # if frame.shape[0]+500 > screensize[0]:
-            #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
-            # frame = cv2.resize(frame, (1660, 1240))
-            if not ok:
-                break
-            ok, bbox = tracker.update(frame)
-            if ok:
-                (x, y, w, h) = [int(v) for v in bbox]
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
+                    try:
+                        self.controller.follow(bbox)
+                    except Exception as err:
+                        print("CAUGHT ERROR: %s" % err)
 
-                try:
-                    self.controller.follow(bbox)
-                except Exception as err:
-                    print("CAUGHT ERROR: %s" % err)
-
-            else:
-                cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-            cv2.imshow('Tracking', frame)
-            if cv2.waitKey(1) & 0XFF == 27:
-                break
-        cv2.destroyAllWindows()
+                else:
+                    cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                cv2.imshow('Tracking', frame)
+                if cv2.waitKey(1) & 0XFF == 27:
+                    break
+            cv2.destroyAllWindows()
+        except KeyboardInterrupt:
+            exit()
+        except Exception as err:
+            print(err)
+            exit()
 
 
 
