@@ -66,7 +66,7 @@ class controller:
         self.shape_list = [0.6, 0.76, 1, 1.32, 1.96, 2.2, 3, 5, 7, 21, 81]
 
         #pan/tilt parameters initial values
-        self.p_gain = 0.2 #contribution of p component to total error
+        self.p_gain = 0.4 #contribution of p component to total error
         self.p_slope = 1.0 # slope of proportional error response
         self.p_shape = 6 # index of shape for proportional error
         self.i_gain = 0 #contribution of i component to total error
@@ -207,7 +207,9 @@ class controller:
             self.z_unsaturated = True
         
         print("X Error: %s - Y Error: %s" % (x_error, y_error))
-        
+
+        if not self.x_unsaturated or not self.y_unsaturated or not self.z_unsaturated:
+            print("SATURATION WAAARRRRNIIINNGGGG!!!!!!!!! X: %s Y: %s Z: %s" % (self.x_unsaturated, self.y_unsaturated, self.z_unsaturated))
 
         #build VISCA hex command
         command_type = '81010601'
@@ -233,8 +235,7 @@ class controller:
             tilt_speed = str(int(y_error * -20)).zfill(2)
             tilt_direction = '01ff'
             
-        command = (command_type + pan_speed + tilt_speed 
-        + pan_direction + tilt_direction)
+        command = (command_type + pan_speed + tilt_speed + pan_direction + tilt_direction)
         self.send_command(command)
 
         #get magnitude and direction in hex for zoom
