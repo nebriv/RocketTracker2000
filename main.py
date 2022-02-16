@@ -10,7 +10,7 @@ from utils.VISCA_controller import controller
 import time
 from visca_over_ip import Camera
 
-WEBCAM = 0
+WEBCAM = 1
 
 COMM_PORT = "COM3"
 # OR IP
@@ -45,11 +45,8 @@ class RocketTracker:
 
     def __init__(self):
 
-
         video_tracker = Thread(target=self.video_tracker)
-        ptz_controller = Thread(target=self.ptz_controller)
         video_tracker.start()
-        # ptz_controller.start()
 
     def video_tracker(self):
         tracker = cv2.TrackerCSRT_create()
