@@ -57,7 +57,7 @@ class RocketTracker:
 
     def video_tracker(self):
         tracker = cv2.TrackerCSRT_create()
-        video = cv2.VideoCapture('test_videos/3.mp4')
+        video = cv2.VideoCapture(WEBCAM)
         ret, frame = video.read()
         # dc = DominantColors(frame, clusters=1)
         # colors = dc.dominantColors()
@@ -71,13 +71,13 @@ class RocketTracker:
         #     print()
         #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
 
-        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
 
 
         # frame = cv2.resize(frame, (1660, 1240))
         bbox = cv2.selectROI(frame)
         ok = tracker.init(frame, bbox)
         while not self.exit:
+            self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
             ok, frame = video.read()
             # if frame.shape[0]+500 > screensize[0]:
             #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
