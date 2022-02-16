@@ -65,13 +65,15 @@ class RocketTracker:
 
         ret, frame = video.read()
 
-        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
 
 
         if frame.shape[0]+500 > screensize[0]:
             print("RESIZING")
             print()
             frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
+
+        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+
 
         # frame = cv2.resize(frame, (1660, 1240))
         bbox = cv2.selectROI(frame)
@@ -93,35 +95,6 @@ class RocketTracker:
                 # Get X Distance from Center
                 self.controller.follow(bbox)
 
-                # print("Y Center: %s" % (int(frame.shape[0]) / 2))
-                # print("Target Y: %s" % (c_y))
-                # print("Distance from Y center: %s" % (c_y - (frame.shape[0] / 2)))
-                #
-                # print("X Center: %s" % (int(frame.shape[1]) / 2))
-                # print("Target X: %s" % (c_x))
-                # print("Distance from X center: %s" % (c_x - (frame.shape[1] / 2)))
-                #
-                # if c_x+10 > frame.shape[1]:
-                #     print("Commanding camera left")
-                #
-                # if c_x-10 < frame.shape[1]:
-                #     print("Command camera right")
-                #     x_control = x_pid(c_x)
-                #     print("PID X: %s" % x_control)
-                #
-                # if c_y+10 > frame.shape[0]:
-                #     print("Commanding camera down")
-                #
-                # if c_y-10 < frame.shape[0]:
-                #     print("Command camera up")
-                #     y_control = y_pid(c_y)
-                #     print("PID Y: %s" % y_control)
-                # print("")
-                # c_x, c_y = self.get_changes(c_x, c_y)
-                #
-                #
-                # self.y_changes.append(c_y)
-                # self.x_changes.append(c_x)
             else:
                 cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             cv2.imshow('Tracking', frame)
@@ -129,18 +102,6 @@ class RocketTracker:
                 break
         cv2.destroyAllWindows()
 
-    def get_center(self, x, y, w, h):
-        return (int(x+w/2),int(y+h/2))
 
-    def get_changes(self, x, y):
-        if not self.last_x:
-            return (x, y)
-        else:
-            return x - self.last_x, y - self.last_y
-
-    def ptz_controller(self):
-        while True:
-            for i in moving_average(self.y_changes, 3):
-                print(i)
 
 tracker = RocketTracker()
