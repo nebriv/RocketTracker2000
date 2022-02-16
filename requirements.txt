@@ -1,4 +1,8 @@
+future==0.18.2
+iso8601==1.0.2
 numpy==1.22.2
 opencv-contrib-python==4.5.5.62
+pyserial==3.5
+PyYAML==6.0
 simple-pid==1.0.1
 visca-over-ip==0.4.1
