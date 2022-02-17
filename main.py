@@ -153,9 +153,14 @@ class RocketTracker:
                     cv2.destroyAllWindows()
 
                 elif self.mode == "manual":
+                    ok, frame = video.read()
+                    cv2.imshow('Tracking', frame)
                     print(self.joy.read())
                     x, y = self.joy.read()
                     self.controller.move(x, y, 0)
+                    if cv2.waitKey(1) & 0XFF == 27:
+                        break
+                    cv2.destroyAllWindows()
 
         except KeyboardInterrupt:
             exit()
