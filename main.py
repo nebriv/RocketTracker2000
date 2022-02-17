@@ -137,10 +137,10 @@ class RocketTracker:
         except Exception as err:
             print(err)
             exit()
-
-        print("Enabling autofocus")
-        self.controller.camera_manual_focus()
         #
+        # print("Enabling manual focus")
+        # self.controller.camera_manual_focus()
+
         print("Showing preview")
         fps = FPS().start()
         while not self.exit and not self.tracking_start:
