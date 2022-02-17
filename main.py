@@ -67,6 +67,10 @@ class RocketTracker:
             self.wc = cv2.VideoCapture("test_videos/3.mp4")
         else:
             self.wc = WebcamVideoStream(src=WEBCAM).start()
+
+        # self.wc = cv2.VideoCapture("rtmp://127.0.0.1:1935/live/test2")
+        # frame, err = self.wc.read()
+        # cv2.imshow('frame', frame)
         print("Waiting for things to initialize")
         time.sleep(2)
         self.video_tracker()
@@ -193,7 +197,7 @@ class RocketTracker:
                         except Exception as err:
                             print("CAUGHT ERROR: %s" % err)
                     else:
-                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 100, 50),
+                        cv2.putText(clean_frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 100, 50),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                         tracking_lost_frame_count += 1
 
