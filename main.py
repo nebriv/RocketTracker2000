@@ -190,7 +190,7 @@ class RocketTracker:
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
                         tracking_lost_frame_count = 0
                         try:
-                            # self.controller.follow(bbox)
+                            self.controller.follow(bbox)
                             pass
                         except Exception as err:
                             print("CAUGHT ERROR: %s" % err)
