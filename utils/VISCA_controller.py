@@ -150,6 +150,7 @@ class controller:
         px, py, pz = self.calculate_p(x_error, y_error, z_error)
         ix, iy, iz = self.calculate_i(x_error, y_error, z_error)
         dy, dx, dz = self.calculate_d(x_error, y_error, z_error)
+        print("Calculated PX: %s" % px)
 
         #adjust for gain. Assumes gains add up to 1
         px *= self.p_gain
