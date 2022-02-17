@@ -67,6 +67,7 @@ class RocketTracker:
     def exit_handler(self):
         print("Good bye.")
         time.sleep(2)
+        cv2.destroyAllWindows()
         if self.controller:
             self.controller.camera_cancel()
             self.controller.camera_go_home()
@@ -160,7 +161,7 @@ class RocketTracker:
                     self.controller.move(x, y, 0)
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
-                cv2.destroyAllWindows()
+            cv2.destroyAllWindows()
 
         except KeyboardInterrupt:
             exit()
