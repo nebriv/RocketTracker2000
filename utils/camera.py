@@ -7,8 +7,8 @@ class WebcamVideoStream(object):
     def __init__(self, src=0):
         self.stream = cv2.VideoCapture(src)
         self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         # FPS = 1/X
         # X = desired FPS
         self.FPS = 1/30
