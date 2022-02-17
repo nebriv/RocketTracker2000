@@ -37,7 +37,7 @@ class RocketTracker:
     exit = False
     controller = False
 
-    mode = "manual"
+    mode = "auto"
 
     def __init__(self):
         self.joy = XboxController()
