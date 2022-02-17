@@ -204,6 +204,7 @@ class RocketTracker:
                     if self.testing:
                         cv2.imshow("Tracking Frame", frame)
                     cv2.imshow("Clean Frame", clean_frame)
+                    Thread(target=self.controller.move, args=(self.joy_input['x'] / 2, self.joy_input['y'] / 2, self.joy_input['z'] / 2,self.joy_input['f'],)).start()
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
 
