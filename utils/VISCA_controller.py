@@ -40,12 +40,12 @@ class controller:
             raise ValueError("Missing IP address or serial port.")
 
         #target values in pixel coordinates
-        self.target_x = 640 #int(width/2)
-        self.target_y = 360 #int(height/2)
+        self.target_x = int(width/2) #int(width/2)
+        self.target_y = int(height/2) #int(height/2)
         self.target_z = 106 #int(width/12)
-        P = 10
-        I = 1
-        D = 1
+        P = .0001
+        I = .01
+        D = .1
 
         self.pid_x = PID.PID(P, I, D)
         self.pid_x.SetPoint = self.target_x
