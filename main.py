@@ -10,7 +10,7 @@ import time
 from utils.utils import DominantColors
 import atexit
 from pynput.keyboard import Key, Listener
-
+import serial
 testing = False
 
 WEBCAM = 1
@@ -77,7 +77,11 @@ class RocketTracker:
         if not ret:
             print("Unable to get video feed")
             exit()
-        self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+        try:
+            self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+        except Exception as err:
+            print(err)
+            exit()
         self.controller.camera_enable_autofocus()
 
         dc = DominantColors(frame, 1)
@@ -85,7 +89,9 @@ class RocketTracker:
 
         if not testing:
             print("Waiting for blue screen to clear.")
+            print(colors)
             while not self.exit and colors[0][2] > 200:
+                print(colors)
                 ret, frame = video.read()
                 dc = DominantColors(frame, 1)
                 colors = dc.dominantColors()
