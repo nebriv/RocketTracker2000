@@ -9,7 +9,7 @@ from utils.VISCA_controller import controller
 import time
 from utils.utils import DominantColors
 import atexit
-from pynput.keyboard import Key, Listener
+from pynput.keyboard import Key, Listener, Controller
 import serial
 from utils.xbox import XboxController
 import inputs
@@ -17,11 +17,22 @@ from imutils.video import FPS
 import subprocess
 from utils.camera import WebcamVideoStream
 import traceback
+import datetime
 
+
+keyboard = Controller()
+keyboard.press(Key.ctrl)
+keyboard.press(Key.alt)
+keyboard.press('7')
+time.sleep(2)
+keyboard.release(Key.ctrl)
+keyboard.release(Key.alt)
+keyboard.release('7')
+exit()
 
 tracking_lost_max_frames = 30
 
-WEBCAM = 1
+WEBCAM = 0
 
 COMM_PORT = "COM3"
 # OR IP
@@ -85,8 +96,13 @@ class RocketTracker:
         if key == "a":
             self.mode = "auto"
 
-        if key == 't':
+        if key == 't' and not self.tracking_start:
             self.tracking_start = True
+        elif key == 't':
+            if self.testing:
+                self.testing = False
+            else:
+                self.testing = True
 
     def keyboard_monitor(self):
         with Listener(on_press=self.keyPress) as listener:
@@ -197,10 +213,11 @@ class RocketTracker:
                         except Exception as err:
                             print("CAUGHT ERROR: %s" % err)
                     else:
-                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 100, 50),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 50, 50), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255), 2)
                         tracking_lost_frame_count += 1
 
+                    # Add timestamp
+                    cv2.putText(frame, 'Frame time: %s' % datetime.datetime.now().timestamp(), (5, 350), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 2)
                     if tracking_lost_frame_count > tracking_lost_max_frames:
                         print("Switching to manual mode, tracking lost for more than %s frames." % tracking_lost_max_frames)
                         self.mode = "manual"
@@ -213,9 +230,10 @@ class RocketTracker:
                         break
 
                 elif self.mode == "manual":
-                    cv2.putText(frame, '------ MANUAL CONTROL ------', (int(frame.shape[0] / 2) + 100, 50),
+                    cv2.putText(frame, '------ MANUAL CONTROL ------', (int(frame.shape[0] / 2) + 50, 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
+                    cv2.putText(frame, 'Frame time: %s' % datetime.datetime.now().timestamp(), (5, 350),
+                                cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 2)
                     cv2.imshow("Tracking Frame", frame)
                     # cv2.imshow("Clean Frame", frame)
                     Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f'])).start()
