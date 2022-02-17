@@ -66,9 +66,9 @@ class controller:
         self.shape_list = [0.6, 0.76, 1, 1.32, 1.96, 2.2, 3, 5, 7, 21, 81]
 
         #pan/tilt parameters initial values
-        self.p_gain = 0.3 #contribution of p component to total error
+        self.p_gain = 0.4 #contribution of p component to total error
         self.p_slope = 1.0 # slope of proportional error response
-        self.p_shape = 6 # index of shape for proportional error
+        self.p_shape = 1 # index of shape for proportional error
         self.i_gain = 0 #contribution of i component to total error
         self.d_gain = 0 #contribution of d component to total error
         self.d_noise_reduction = 1 
@@ -283,6 +283,9 @@ class controller:
         """
         #proportional error calculated as slope/10 x^shape
         #error is clamped between 1 and -1
+        # print(self.p_slope / 10)
+        # print(x_error)
+        # print(x_error**self.shape_list[self.p_shape])
         # print("DEBUG: %s" % (self.p_slope/10) * x_error**self.shape_list[self.p_shape])
         px = max(-1.0, min(1.0, (self.p_slope/10) * x_error**self.shape_list[self.p_shape]))
         py = max(-1.0, min(1.0, (self.p_slope/10) * y_error**self.shape_list[self.p_shape]))
