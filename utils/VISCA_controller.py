@@ -246,7 +246,8 @@ class controller:
         self.send_command('8101043802FF')
 
     def camera_manual_focus(self):
-        self.send_command('8101043803FF')
+        pass
+        # self.send_command('8101043803FF')
 
     def move(self, x_error, y_error, z_error, focus=0):
         """
