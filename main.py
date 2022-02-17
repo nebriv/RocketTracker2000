@@ -135,8 +135,7 @@ class RocketTracker:
                         print("CAUGHT ERROR: %s" % err)
 
                 else:
-                    cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0]/2)+300, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                 frame = cv2.resize(frame, (int(round(frame.shape[1] / 2.5, 0)), int(round(frame.shape[0] / 2.5, 0))))
                 cv2.imshow('Tracking', frame)
                 cv2.imshow("Clean Frame", clean_frame)
