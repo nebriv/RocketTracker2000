@@ -172,7 +172,7 @@ class RocketTracker:
 
 
         fps = FPS().start()
-        print("HELLO?")
+
         try:
             while not self.exit:
                 if self.mode == "auto":
