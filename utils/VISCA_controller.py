@@ -11,6 +11,12 @@ class controller:
     """
     PID controller for VISCA over IP camera
     """
+
+    last_x = None
+    last_y = None
+    last_z = None
+    last_f = None
+
     def __init__(self, width, height, ip_address=None, port=52381, serial_port=None, sample_time=0.03) -> None:
         """
         new controller instance
@@ -245,9 +251,13 @@ class controller:
     def camera_enable_autofocus(self):
         self.send_command('8101043802FF')
 
+    def camera_recall_preset(self, preset):
+        print(f'{preset:x}')
+        print(f'8101043F020{preset:x}FF')
+        # self.send_command(f'8101043F020{preset:x}FF')
+
     def camera_manual_focus(self):
-        pass
-        # self.send_command('8101043803FF')
+        self.send_command('8101043803FF')
 
     def move(self, x_error, y_error, z_error, focus=0):
         """
@@ -305,9 +315,11 @@ class controller:
         elif y_error < 0 - self.y_threshold:
             tilt_speed = str(int(y_error * -20)).zfill(2)
             tilt_direction = '01ff'
-            
+
         command = (command_type + pan_speed + tilt_speed + pan_direction + tilt_direction)
-        self.send_command(command)
+        if command != self.last_x:
+            self.send_command(command)
+            self.last_x = command
 
         #get magnitude and direction in hex for zoom
         if z_error > self.z_threshold:
@@ -315,7 +327,10 @@ class controller:
         elif z_error < 0 - self.z_threshold:
             zoom_speed = '3{}ff'.format(str(int(z_error * -7)))
         zoom_command = zoom_header + zoom_speed
-        self.send_command(zoom_command)
+
+        if zoom_command != self.last_z:
+            self.send_command(zoom_command)
+            self.last_z = zoom_command
 
         focus_speed = 0
         if focus > self.f_threshold:
@@ -324,19 +339,20 @@ class controller:
             focus_speed = int(focus * 7)
 
 
-        # code = '81010408'
-        # speed_hex = f'{abs(focus_speed):x}'
-        #
-        # if focus_speed == 0:
-        #     direction_hex = '0'
-        # elif focus_speed > 0:
-        #     direction_hex = '2'
-        # else:
-        #     direction_hex = '3'
-        #
-        # focus_command = code + direction_hex + speed_hex + "FF"
-        # print(focus_command)
-        # self.send_command(focus_command)
+        code = '81010408'
+        speed_hex = f'{abs(focus_speed):x}'
+
+        if focus_speed == 0:
+            direction_hex = '0'
+        elif focus_speed > 0:
+            direction_hex = '2'
+        else:
+            direction_hex = '3'
+
+        focus_command = code + direction_hex + speed_hex + "FF"
+        if focus_command != self.last_f:
+            self.send_command(focus_command)
+            self.last_f = focus_command
 
     def send_command(self, command):
         """

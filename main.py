@@ -138,6 +138,7 @@ class RocketTracker:
             print(err)
             exit()
 
+
         print("Enabling manual focus")
         self.controller.camera_manual_focus()
 
