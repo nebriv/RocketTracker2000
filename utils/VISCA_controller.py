@@ -283,7 +283,7 @@ class controller:
         """
         #proportional error calculated as slope/10 x^shape
         #error is clamped between 1 and -1
-        print("DEBUG: %s" % (self.p_slope/10) * x_error**self.shape_list[self.p_shape])
+        # print("DEBUG: %s" % (self.p_slope/10) * x_error**self.shape_list[self.p_shape])
         px = max(-1.0, min(1.0, (self.p_slope/10) * x_error**self.shape_list[self.p_shape]))
         py = max(-1.0, min(1.0, (self.p_slope/10) * y_error**self.shape_list[self.p_shape]))
         pz = max(-1.0, min(1.0, (self.z_p_slope/10) * z_error**self.shape_list[self.z_p_shape]))
