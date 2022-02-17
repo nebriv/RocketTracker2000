@@ -249,9 +249,9 @@ class controller:
         self.send_command('8101043803FF')
 
     def camera_set_focus(self, speed):
-        code = '8101'
+        code = '81010408'
         speed_hex = f'{abs(speed):x}'
-        code = code + speed_hex
+
         if speed == 0:
             direction_hex = '0'
         elif speed > 0:
@@ -260,7 +260,6 @@ class controller:
             direction_hex = '3'
 
         code = code + direction_hex + speed_hex + "FF"
-
         self.send_command(code)
 
 
@@ -356,7 +355,7 @@ class controller:
                 self.connection.write(data)
             
         except:
-            print("Connection Error: Could not send VISCA command to camera")
+            print("Connection Error: Could not send VISCA command %s to camera" % command)
 
     def calculate_p(self, x_error, y_error, z_error):
         """
