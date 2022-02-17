@@ -165,17 +165,17 @@ class controller:
 
         # get magnitiude and direction in hex for x and y
         if x_error > self.x_threshold:
-            pan_speed = str(int(x_error * 24)).zfill(2)
+            pan_speed = str(int(x_error * 34)).zfill(2)
             pan_direction = '02'
         elif x_error < 0 - self.x_threshold:
-            pan_speed = str(int(x_error * -24)).zfill(2)
+            pan_speed = str(int(x_error * -34)).zfill(2)
             pan_direction = '01'
 
         if y_error > self.y_threshold:
-            tilt_speed = str(int(y_error * 20)).zfill(2)
+            tilt_speed = str(int(y_error * 30)).zfill(2)
             tilt_direction = '02ff'
         elif y_error < 0 - self.y_threshold:
-            tilt_speed = str(int(y_error * -20)).zfill(2)
+            tilt_speed = str(int(y_error * -30)).zfill(2)
             tilt_direction = '01ff'
 
         command = (command_type + pan_speed + tilt_speed + pan_direction + tilt_direction)
