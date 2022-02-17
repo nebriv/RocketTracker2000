@@ -152,7 +152,7 @@ class RocketTracker:
                 cv2.putText(frame, 'Press T to Select Tracking Object', (int(frame.shape[0] / 2) + 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             cv2.imshow('Preview', frame)
             if self.joy.connected:
-                Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f']/2)).start()
+                Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f'])).start()
             fps.update()
             if cv2.waitKey(1) & 0XFF == 27:
                 break
@@ -212,7 +212,7 @@ class RocketTracker:
                     if self.testing:
                         cv2.imshow("Tracking Frame", frame)
                     cv2.imshow("Clean Frame", frame)
-                    self.controller.move(self.joy_input['x'], self.joy_input['y'], self.joy_input['z'])
+                    Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f'])).start()
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
 

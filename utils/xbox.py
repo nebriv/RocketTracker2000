@@ -50,7 +50,7 @@ class XboxController(object):
         rt = round(self.RightTrigger, 4)
         lt = round(self.LeftTrigger, 4)
         z = (0 - lt) + rt
-        f = (round(self.RightJoystickY))
+        f = round(self.RightJoystickY, 4)
         return {"x": x, "y": y, "z": z, "rt": rt, "lt": lt, "a": a, "b": b, "start": self.Start, 'f': f}
 
 
