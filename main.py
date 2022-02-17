@@ -132,8 +132,8 @@ class RocketTracker:
         print("Reading frame to setup Camera Controller")
         frame = self.wc.read()
         #
-        width = int(frame.shape[1] * 25 / 100)
-        height = int(frame.shape[0] * 25 / 100)
+        width = int(frame.shape[1] * 50 / 100)
+        height = int(frame.shape[0] * 50 / 100)
         #
         try:
             frame = cv2.resize(frame, (width, height))
@@ -197,7 +197,7 @@ class RocketTracker:
                         except Exception as err:
                             print("CAUGHT ERROR: %s" % err)
                     else:
-                        cv2.putText(clean_frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 100, 50),
+                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 100, 50),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                         tracking_lost_frame_count += 1
 
@@ -207,7 +207,7 @@ class RocketTracker:
 
                     if self.testing:
                         cv2.imshow("Tracking Frame", frame)
-                    cv2.imshow("Clean Frame", clean_frame)
+                    # cv2.imshow("Clean Frame", clean_frame)
                     Thread(target=self.controller.move, args=(self.joy_input['x'] / 2, self.joy_input['y'] / 2, self.joy_input['z'] / 2,self.joy_input['f'],)).start()
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
@@ -215,9 +215,9 @@ class RocketTracker:
                 elif self.mode == "manual":
                     cv2.putText(frame, '------ MANUAL CONTROL ------', (int(frame.shape[0] / 2) + 100, 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    if self.testing:
-                        cv2.imshow("Tracking Frame", frame)
-                    cv2.imshow("Clean Frame", frame)
+
+                    cv2.imshow("Tracking Frame", frame)
+                    # cv2.imshow("Clean Frame", frame)
                     Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f'])).start()
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
