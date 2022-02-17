@@ -1,4 +1,5 @@
 future==0.18.2
+inputs==0.5
 iso8601==1.0.2
 joblib==1.1.0
 numpy==1.22.2

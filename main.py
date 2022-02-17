@@ -11,6 +11,7 @@ from utils.utils import DominantColors
 import atexit
 from pynput.keyboard import Key, Listener
 import serial
+from utils.xbox import XboxController
 
 
 testing = False
@@ -36,7 +37,10 @@ class RocketTracker:
     exit = False
     controller = False
 
+    mode = "manual"
+
     def __init__(self):
+        self.joy = XboxController()
         atexit.register(self.exit_handler)
         keyboard_monitor = Thread(target=self.keyboard_monitor, daemon=True)
         keyboard_monitor.start()
@@ -49,6 +53,10 @@ class RocketTracker:
         key = str(key).replace("'", "")
         if key == 'q':
             self.exit = True
+        if key == 'm':
+            self.mode = "manual"
+        if key == "a":
+            self.mode = "auto"
 
 
     def keyboard_monitor(self):
@@ -117,31 +125,36 @@ class RocketTracker:
         cv2.destroyAllWindows()
         try:
             while not self.exit:
-                ok, frame = video.read()
-                clean_frame = frame.copy()
-                # if frame.shape[0]+500 > screensize[0]:
-                #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
-                # frame = cv2.resize(frame, (1660, 1240))
-                if not ok:
-                    break
-                ok, bbox = tracker.update(frame)
-                if ok:
-                    (x, y, w, h) = [int(v) for v in bbox]
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
+                if self.mode == "auto":
+                    ok, frame = video.read()
+                    clean_frame = frame.copy()
+                    # if frame.shape[0]+500 > screensize[0]:
+                    #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
+                    # frame = cv2.resize(frame, (1660, 1240))
+                    if not ok:
+                        break
+                    ok, bbox = tracker.update(frame)
+                    if ok:
+                        (x, y, w, h) = [int(v) for v in bbox]
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
 
-                    try:
-                        self.controller.follow(bbox)
-                    except Exception as err:
-                        print("CAUGHT ERROR: %s" % err)
+                        try:
+                            self.controller.follow(bbox)
+                        except Exception as err:
+                            print("CAUGHT ERROR: %s" % err)
 
-                else:
-                    cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0]/2)+300, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                frame = cv2.resize(frame, (int(round(frame.shape[1] / 2.5, 0)), int(round(frame.shape[0] / 2.5, 0))))
-                cv2.imshow('Tracking', frame)
-                cv2.imshow("Clean Frame", clean_frame)
-                if cv2.waitKey(1) & 0XFF == 27:
-                    break
-            cv2.destroyAllWindows()
+                    else:
+                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0]/2)+300, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    frame = cv2.resize(frame, (int(round(frame.shape[1] / 2.5, 0)), int(round(frame.shape[0] / 2.5, 0))))
+                    cv2.imshow('Tracking', frame)
+                    cv2.imshow("Clean Frame", clean_frame)
+                    if cv2.waitKey(1) & 0XFF == 27:
+                        break
+                    cv2.destroyAllWindows()
+
+                elif self.mode == "manual":
+                    print(self.joy.read())
+
         except KeyboardInterrupt:
             exit()
         except Exception as err:
