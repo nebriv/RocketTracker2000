@@ -92,7 +92,7 @@ class RocketTracker:
         if not testing:
             print("Waiting for blue screen to clear.")
             print(colors)
-            while not self.exit and colors[0][2] > 200:
+            while not self.exit and colors[0][2] > 199:
                 print(colors)
                 ret, frame = video.read()
                 dc = DominantColors(frame, 1)
