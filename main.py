@@ -12,9 +12,10 @@ import atexit
 from pynput.keyboard import Key, Listener
 import serial
 from utils.xbox import XboxController
+import inputs
 
-
-testing = False
+testing = True
+tracking_lost_max_frames = 30
 
 WEBCAM = 1
 
@@ -37,10 +38,15 @@ class RocketTracker:
     exit = False
     controller = False
 
+    tracking_start = False
+
     mode = "auto"
 
     def __init__(self):
-        self.joy = XboxController()
+        try:
+            self.joy = XboxController()
+        except inputs.UnpluggedError as err:
+            print("Game pad not detected!")
         atexit.register(self.exit_handler)
         keyboard_monitor = Thread(target=self.keyboard_monitor, daemon=True)
         keyboard_monitor.start()
@@ -57,6 +63,9 @@ class RocketTracker:
             self.mode = "manual"
         if key == "a":
             self.mode = "auto"
+
+        if key == 't':
+            self.tracking_start = True
 
 
     def keyboard_monitor(self):
@@ -107,7 +116,11 @@ class RocketTracker:
                 dc = DominantColors(frame, 1)
                 colors = dc.dominantColors()
 
-
+        while not self.exit and not self.tracking_start:
+            ret, frame = video.read()
+            cv2.imshow('Press T to select object', frame)
+            if cv2.waitKey(1) & 0XFF == 27:
+                break
         ret, frame = video.read()
         # while self.exit == False:
         #     print("Hey")
@@ -124,6 +137,7 @@ class RocketTracker:
         bbox = cv2.selectROI(frame)
         ok = tracker.init(frame, bbox)
         cv2.destroyAllWindows()
+        tracking_lost_frame_count = 0
         try:
             while not self.exit:
                 if self.mode == "auto":
@@ -138,22 +152,26 @@ class RocketTracker:
                     if ok:
                         (x, y, w, h) = [int(v) for v in bbox]
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
-
+                        tracking_lost_frame_count = 0
                         try:
                             self.controller.follow(bbox)
                         except Exception as err:
                             print("CAUGHT ERROR: %s" % err)
 
                     else:
-                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0]/2)+300, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0]/2)+100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        tracking_lost_frame_count += 1
+
+                    if tracking_lost_frame_count > tracking_lost_max_frames:
+                        self.mode = "manual"
                     frame = cv2.resize(frame, (int(round(frame.shape[1] / 2.5, 0)), int(round(frame.shape[0] / 2.5, 0))))
                     cv2.imshow('Tracking', frame)
                     cv2.imshow("Clean Frame", clean_frame)
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
 
-
                 elif self.mode == "manual":
+                    cv2.putText(frame, '------ MANUAL CONTROL ------', (int(frame.shape[0] / 2) + 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                     ok, frame = video.read()
                     cv2.imshow('Tracking', frame)
                     print(self.joy.read())
@@ -161,6 +179,7 @@ class RocketTracker:
                     self.controller.move(x, y, 0)
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
+
             cv2.destroyAllWindows()
 
         except KeyboardInterrupt:
