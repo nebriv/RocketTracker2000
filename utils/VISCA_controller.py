@@ -77,8 +77,8 @@ class controller:
 
         # camera does not move unless error 
         # error is greater than threshold
-        self.x_threshold = 0.4
-        self.y_threshold = 0.4
+        self.x_threshold = 0.2
+        self.y_threshold = 0.2
 
         #zoom parameters initial values
         self.z_p_gain = 1
