@@ -311,7 +311,7 @@ class controller:
             zoom_speed = '3{}ff'.format(str(int(z_error * -7)))
         zoom_command = zoom_header + zoom_speed
         self.send_command(zoom_command)
-        
+
     def send_command(self, command):
         """
         Sends VISCA hex command to camera

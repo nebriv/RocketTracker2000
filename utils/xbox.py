@@ -1,10 +1,13 @@
 from inputs import get_gamepad
+import inputs
 import math
 import threading
 
 class XboxController(object):
     MAX_TRIG_VAL = math.pow(2, 8)
     MAX_JOY_VAL = math.pow(2, 15)
+
+    connected = False
 
     def __init__(self):
 
@@ -29,23 +32,36 @@ class XboxController(object):
         self.UpDPad = 0
         self.DownDPad = 0
 
-        self._monitor_thread = threading.Thread(target=self._monitor_controller, args=())
-        self._monitor_thread.daemon = True
-        self._monitor_thread.start()
+        for device in inputs.devices:
+            if "X-Box" in str(device):
+                self.connected = True
+                break
+        if self.connected:
+            self._monitor_thread = threading.Thread(target=self._monitor_controller, args=())
+            self._monitor_thread.daemon = True
+            self._monitor_thread.start()
 
 
     def read(self): # return the buttons/triggers that you care about in this methode
-        x = self.LeftJoystickX
-        y = self.LeftJoystickY
+        x = round(self.LeftJoystickX, 4)
+        y = round(self.LeftJoystickY, 4)
         a = self.A
         b = self.X # b=1, x=2
-        rb = self.RightBumper
-        return [x, y]
+        rt = round(self.RightTrigger, 4)
+        lt = round(self.LeftTrigger, 4)
+        z = (0 - lt) + rt
+        return {"x": x, "y": y, "z": z, "rt": rt, "lt": lt, "a": a, "b": b, "start": self.Start}
 
 
     def _monitor_controller(self):
         while True:
-            events = get_gamepad()
+            try:
+                events = get_gamepad()
+            except Exception as err:
+                print("Controller error: %s" % err)
+                break
+            finally:
+                self.connected = True
             for event in events:
                 if event.code == 'ABS_Y':
                     self.LeftJoystickY = event.state / XboxController.MAX_JOY_VAL # normalize between -1 and 1

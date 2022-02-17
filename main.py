@@ -14,11 +14,14 @@ import serial
 from utils.xbox import XboxController
 import inputs
 from imutils.video import FPS
+import subprocess
+from utils.camera import WebcamVideoStream
+import traceback
 
-testing = False
+
 tracking_lost_max_frames = 30
 
-WEBCAM = 1
+WEBCAM = 0
 
 COMM_PORT = "COM3"
 # OR IP
@@ -27,41 +30,6 @@ PORT = 52381
 
 user32 = ctypes.windll.user32
 screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-
-
-class WebcamVideoStream:
-    def __init__(self, src=0):
-        # initialize the video camera stream and read the first frame
-        # from the stream
-        self.stream = cv2.VideoCapture(src)
-        self.stream.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.stream.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-        (self.grabbed, self.frame) = self.stream.read()
-        # initialize the variable used to indicate if the thread should
-        # be stopped
-        self.stopped = False
-
-    def start(self):
-        # start the thread to read frames from the video stream
-        Thread(target=self.update, args=()).start()
-        return self
-
-    def update(self):
-        # keep looping infinitely until the thread is stopped
-        while True:
-            # if the thread indicator variable is set, stop the thread
-            if self.stopped:
-                return
-            # otherwise, read the next frame from the stream
-            (self.grabbed, self.frame) = self.stream.read()
-
-    def read(self):
-        # return the frame most recently read
-        return self.frame
-
-    def stop(self):
-        # indicate that the thread should be stopped
-        self.stopped = True
 
 
 class RocketTracker:
@@ -78,6 +46,7 @@ class RocketTracker:
 
     mode = "auto"
     wc = False
+    testing = False
 
     def __init__(self):
         try:
@@ -85,27 +54,51 @@ class RocketTracker:
         except inputs.UnpluggedError as err:
             print("Game pad not detected!")
         atexit.register(self.exit_handler)
-        keyboard_monitor = Thread(target=self.keyboard_monitor, daemon=True)
-        keyboard_monitor.start()
-        video_tracker = Thread(target=self.video_tracker, daemon=True)
-        video_tracker.start()
-        video_tracker.join()
+        # print("Starting keyboard monitor")
+        # keyboard_monitor = Thread(target=self.keyboard_monitor, daemon=True)
+        # keyboard_monitor.start()
 
-    def keyPress(self, key):
-        key = str(key).replace("'", "")
-        if key == 'q':
-            self.exit = True
-        if key == 'm':
-            self.mode = "manual"
-        if key == "a":
-            self.mode = "auto"
+        print("Starting controller monitor")
+        controller_monitor = Thread(target=self.controller_monitor, daemon=True)
+        controller_monitor.start()
 
-        if key == 't':
-            self.tracking_start = True
+        print("Starting video input")
+        if self.testing:
+            self.wc = cv2.VideoCapture("test_videos/3.mp4")
+        else:
+            self.wc = WebcamVideoStream(src=WEBCAM).start()
+        print("Waiting for things to initialize")
+        time.sleep(2)
+        self.video_tracker()
+        self.wc.stop()
 
-    def keyboard_monitor(self):
-        with Listener(on_press=self.keyPress) as listener:
-            listener.join()
+    # def keyPress(self, key):
+    #     key = str(key).replace("'", "")
+    #     if key == 'q':
+    #         self.exit = True
+    #     if key == 'm':
+    #         self.mode = "manual"
+    #     if key == "a":
+    #         self.mode = "auto"
+    #
+    #     if key == 't':
+    #         self.tracking_start = True
+    #
+    # def keyboard_monitor(self):
+    #     with Listener(on_press=self.keyPress) as listener:
+    #         listener.join()
+
+    def controller_monitor(self):
+        while not self.exit:
+            self.joy_input = self.joy.read()
+            if self.joy_input['start'] == 1:
+                self.tracking_start = True
+            if self.joy_input['a'] == 1:
+                if self.testing:
+                    self.testing = False
+                else:
+                    self.testing = True
+
 
     def exit_handler(self):
         print("Good bye.")
@@ -119,117 +112,117 @@ class RocketTracker:
 
 
     def video_tracker(self):
-        if testing:
+        if self.testing:
             print("TESTING MODE ENABLED!")
         else:
             print("TEST MODE IS NOT ENABLED")
 
-        tracker = cv2.TrackerCSRT_create()
-        if testing:
-            self.video = cv2.VideoCapture("test_videos/3.mp4")
+        if self.joy.connected:
+            print("Controller connected!")
         else:
-            # self.video = cv2.VideoCapture(WEBCAM)
-            self.wc = WebcamVideoStream(src=WEBCAM).start()
-            # self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-            # self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-            # print(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            print("Controller not connected!")
 
+        print("Creating Tracker instance")
+        tracker = cv2.TrackerCSRT_create()
+
+        print("Reading frame to setup Camera Controller")
         frame = self.wc.read()
-        # if not frame:
-        #     print("Unable to get video feed")
-        #     exit()
+        #
+        width = int(frame.shape[1] * 25 / 100)
+        height = int(frame.shape[0] * 25 / 100)
+        #
         try:
+            frame = cv2.resize(frame, (width, height))
             self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
         except Exception as err:
             print(err)
             exit()
+        print("Enabling autofocus")
         self.controller.camera_enable_autofocus()
+        #
+        print("Showing preview")
+        fps = FPS().start()
+        while not self.exit and not self.tracking_start:
+            frame = self.wc.read()
+            # frame = cv2.resize(frame, (width, height))
+            if self.joy.connected:
+                cv2.putText(frame, 'Press Start to Select Tracking Object', (int(frame.shape[0] / 2) + 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            else:
+                cv2.putText(frame, 'Press T to Select Tracking Object', (int(frame.shape[0] / 2) + 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.imshow('Preview', frame)
+            if self.joy.connected:
+                Thread(target=self.controller.move, args=(self.joy_input['x'], self.joy_input['y'], self.joy_input['z'],)).start()
+            fps.update()
+            if cv2.waitKey(1) & 0XFF == 27:
+                break
+        fps.stop()
+        print(fps.fps())
 
-        dc = DominantColors(frame, 1)
-        colors = dc.dominantColors()
-
-        if not testing:
-            print("Waiting for blue screen to clear.")
-            print(colors)
-            while not self.exit and colors[0][2] > 199:
-                print(colors)
-                frame = self.wc.read()
-                dc = DominantColors(frame, 1)
-                colors = dc.dominantColors()
-
-        # while not self.exit and not self.tracking_start:
-        #     ret, frame = self.video.read()
-        #     cv2.imshow('Press T to select object', frame)
-        #     if cv2.waitKey(1) & 0XFF == 27:
-        #         break
-
+        cv2.destroyAllWindows()
         frame = self.wc.read()
-
+        frame = cv2.resize(frame, (width, height))
         bbox = cv2.selectROI(frame)
         ok = tracker.init(frame, bbox)
         cv2.destroyAllWindows()
         tracking_lost_frame_count = 0
 
-
-        fps = FPS().start()
+        prev_frame_time = 0
+        new_frame_time = 0
+        frame_counter = 0
 
         try:
             while not self.exit:
+                frame = self.wc.read()
+                clean_frame = frame.copy()
+                new_frame_time = time.time()
+                fps = 1 / (new_frame_time - prev_frame_time)
+                prev_frame_time = new_frame_time
+                fps = str(int(fps))
+                # cv2.putText(clean_frame, fps, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
                 if self.mode == "auto":
-                    frame = self.wc.read()
-
-                    #
-                    # # ok, frame = video.read()
-                    clean_frame = frame.copy()
-                    # if frame.shape[0]+500 > screensize[0]:
-                    #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
-                    # frame = cv2.resize(frame, (1660, 1240))
+                    frame = cv2.resize(frame, (width, height))
                     ok, bbox = tracker.update(frame)
                     if ok:
                         (x, y, w, h) = [int(v) for v in bbox]
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2, 1)
                         tracking_lost_frame_count = 0
                         try:
-                            self.controller.follow(bbox)
-                            pass
+                            Thread(target=self.controller.follow, args=(bbox,)).start()
                         except Exception as err:
                             print("CAUGHT ERROR: %s" % err)
-
                     else:
                         cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 100, 50),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                         tracking_lost_frame_count += 1
 
                     if tracking_lost_frame_count > tracking_lost_max_frames:
+                        print("Switching to manual mode, tracking lost for more than %s frames." % tracking_lost_max_frames)
                         self.mode = "manual"
-                    frame = cv2.resize(frame,
-                                       (int(round(frame.shape[1] / 2.5, 0)), int(round(frame.shape[0] / 2.5, 0))))
-                    cv2.imshow('Tracking', frame)
+
+                    if self.testing:
+                        cv2.imshow("Tracking Frame", frame)
                     cv2.imshow("Clean Frame", clean_frame)
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
-                    fps.update()
 
                 elif self.mode == "manual":
                     cv2.putText(frame, '------ MANUAL CONTROL ------', (int(frame.shape[0] / 2) + 100, 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    frame = self.Q.get()
-                    cv2.imshow('Tracking', frame)
-                    print(self.joy.read())
-                    x, y = self.joy.read()
-                    self.controller.move(x, y, 0)
+                    if self.testing:
+                        cv2.imshow("Tracking Frame", frame)
+                    cv2.imshow("Clean Frame", frame)
+                    self.controller.move(self.joy_input['x'], self.joy_input['y'], self.joy_input['z'])
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
-                    fps.update()
 
             cv2.destroyAllWindows()
-            fps.stop()
 
 
         except KeyboardInterrupt:
             exit()
         except Exception as err:
-            print(err)
+            print("CAUGHT ERROR: %s" % err)
+            traceback.print_exc()
             exit()
 
 
