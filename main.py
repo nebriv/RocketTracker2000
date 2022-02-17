@@ -150,7 +150,7 @@ class RocketTracker:
                     cv2.imshow("Clean Frame", clean_frame)
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
-                    cv2.destroyAllWindows()
+
 
                 elif self.mode == "manual":
                     ok, frame = video.read()
@@ -160,7 +160,7 @@ class RocketTracker:
                     self.controller.move(x, y, 0)
                     if cv2.waitKey(1) & 0XFF == 27:
                         break
-                    cv2.destroyAllWindows()
+                cv2.destroyAllWindows()
 
         except KeyboardInterrupt:
             exit()
