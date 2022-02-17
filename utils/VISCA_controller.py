@@ -143,16 +143,16 @@ class controller:
         x, y, w, h = box
         center_x = x + w/2
         center_y = y + h/2
-        print("Box Center X: %s - Box Center Y: %s" % (center_x, center_y))
+        # print("Box Center X: %s - Box Center Y: %s" % (center_x, center_y))
 
         x_error = center_x - self.target_x
         y_error = center_y - self.target_y
 
-        print("X %s - Y %s" % (x_error, y_error))
+        # print("X %s - Y %s" % (x_error, y_error))
 
         x_error = x_error * .001
         y_error = y_error * .001
-        print("X %s - Y %s" % (x_error, y_error))
+        # print("X %s - Y %s" % (x_error, y_error))
 
         # build VISCA hex command
         command_type = '81010601'
@@ -193,13 +193,13 @@ class controller:
         x, y, w, h = box
         center_x = x + w/2
         center_y = y + h/2
-        print("Box Center X: %s - Box Center Y: %s" % (center_x, center_y))
+        # print("Box Center X: %s - Box Center Y: %s" % (center_x, center_y))
 
         x_error = center_x - self.target_x
         y_error = center_y - self.target_y
         # z_error = w - self.target_z
         z_error = 0
-        print("Raw x_error: %s - Raw y_error: %s - Raw z_error: %s" % (x_error, y_error, z_error))
+        # print("Raw x_error: %s - Raw y_error: %s - Raw z_error: %s" % (x_error, y_error, z_error))
         
         # #calculate PID error
         # px, py, pz = self.calculate_p(x_error, y_error, z_error)
@@ -227,8 +227,8 @@ class controller:
         self.pid_x.update(x_error)
         self.pid_y.update(y_error)
 
-        print("X PID OUTPUT: %s" % self.pid_x.output)
-        print("Y PID OUTPUT: %s" % self.pid_y.output)
+        # print("X PID OUTPUT: %s" % self.pid_x.output)
+        # print("Y PID OUTPUT: %s" % self.pid_y.output)
 
         self.move(self.pid_x.output, self.pid_y.output, 0)
 
@@ -272,7 +272,7 @@ class controller:
         else:
             self.z_unsaturated = True
         
-        print("X Error: %s - Y Error: %s - Z Error: %s" % (x_error, y_error, z_error))
+        # print("X Error: %s - Y Error: %s - Z Error: %s" % (x_error, y_error, z_error))
 
         if not self.x_unsaturated or not self.y_unsaturated:
             print("SATURATION WAAARRRRNIIINNGGGG!!!!!!!!! X: %s Y: %s Z: %s" % (self.x_unsaturated, self.y_unsaturated, self.z_unsaturated))
@@ -320,7 +320,7 @@ class controller:
         :return:
         :rtype: None
         """
-        print("Sending command: %s" % command)
+        # print("Sending command: %s" % command)
         try:
             data = bytes.fromhex(command)
             if self.conn_type == "network":
