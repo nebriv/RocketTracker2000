@@ -316,26 +316,26 @@ class controller:
         zoom_command = zoom_header + zoom_speed
         self.send_command(zoom_command)
 
-        focus_speed = 0
-        if focus > self.f_threshold:
-            focus_speed = int(focus * 7)
-        elif focus < 0 - self.f_threshold:
-            focus_speed = int(focus * 7)
-
-        if abs(focus_speed) > 0:
-            code = '81010408'
-            speed_hex = f'{abs(focus_speed):x}'
-
-            if focus_speed == 0:
-                direction_hex = '0'
-            elif focus_speed > 0:
-                direction_hex = '2'
-            else:
-                direction_hex = '3'
-
-            focus_command = code + direction_hex + speed_hex + "FF"
-
-            self.send_command(focus_command)
+        # focus_speed = 0
+        # if focus > self.f_threshold:
+        #     focus_speed = int(focus * 7)
+        # elif focus < 0 - self.f_threshold:
+        #     focus_speed = int(focus * 7)
+        #
+        # if abs(focus_speed) > 0:
+        #     code = '81010408'
+        #     speed_hex = f'{abs(focus_speed):x}'
+        #
+        #     if focus_speed == 0:
+        #         direction_hex = '0'
+        #     elif focus_speed > 0:
+        #         direction_hex = '2'
+        #     else:
+        #         direction_hex = '3'
+        #
+        #     focus_command = code + direction_hex + speed_hex + "FF"
+        #
+        #     self.send_command(focus_command)
 
     def send_command(self, command):
         """
