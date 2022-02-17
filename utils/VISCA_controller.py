@@ -332,10 +332,12 @@ class controller:
         zoom_command = zoom_header + zoom_speed
         self.send_command(zoom_command)
 
+        focus_speed = 0
         if focus > self.f_threshold:
-            focus_speed = '2{}ff'.format(str(int(z_error * 7)))
+            focus_speed = '2{}ff'.format(str(int(focus * 7)))
         elif focus < 0 - self.f_threshold:
-            focus_speed = '3{}ff'.format(str(int(z_error * -7)))
+            focus_speed = '3{}ff'.format(str(int(focus * -7)))
+        print("Focus Speed: %s" % focus_speed)
         self.camera_set_focus(focus_speed)
 
     def send_command(self, command):
