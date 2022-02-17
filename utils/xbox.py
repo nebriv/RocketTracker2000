@@ -50,7 +50,8 @@ class XboxController(object):
         rt = round(self.RightTrigger, 4)
         lt = round(self.LeftTrigger, 4)
         z = (0 - lt) + rt
-        return {"x": x, "y": y, "z": z, "rt": rt, "lt": lt, "a": a, "b": b, "start": self.Start}
+        f = (round(self.RightJoystickY))
+        return {"x": x, "y": y, "z": z, "rt": rt, "lt": lt, "a": a, "b": b, "start": self.Start, 'f': f}
 
 
     def _monitor_controller(self):
