@@ -18,7 +18,7 @@ from imutils.video import FPS
 testing = False
 tracking_lost_max_frames = 30
 
-WEBCAM = 0
+WEBCAM = 1
 
 COMM_PORT = "COM3"
 # OR IP
