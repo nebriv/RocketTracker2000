@@ -69,7 +69,7 @@ class RocketTracker:
         else:
             print("TEST MODE IS NOT ENABLED")
 
-        tracker = cv2.TrackerCSRT_create()
+        tracker = cv2.TrackerKCF_create()
         if testing:
             video = cv2.VideoCapture("test_videos/3.mp4")
         else:
