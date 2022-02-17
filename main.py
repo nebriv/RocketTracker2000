@@ -54,9 +54,9 @@ class RocketTracker:
         except inputs.UnpluggedError as err:
             print("Game pad not detected!")
         atexit.register(self.exit_handler)
-        # print("Starting keyboard monitor")
-        # keyboard_monitor = Thread(target=self.keyboard_monitor, daemon=True)
-        # keyboard_monitor.start()
+        print("Starting keyboard monitor")
+        keyboard_monitor = Thread(target=self.keyboard_monitor, daemon=True)
+        keyboard_monitor.start()
 
         print("Starting controller monitor")
         controller_monitor = Thread(target=self.controller_monitor, daemon=True)
@@ -72,21 +72,21 @@ class RocketTracker:
         self.video_tracker()
         self.wc.stop()
 
-    # def keyPress(self, key):
-    #     key = str(key).replace("'", "")
-    #     if key == 'q':
-    #         self.exit = True
-    #     if key == 'm':
-    #         self.mode = "manual"
-    #     if key == "a":
-    #         self.mode = "auto"
-    #
-    #     if key == 't':
-    #         self.tracking_start = True
-    #
-    # def keyboard_monitor(self):
-    #     with Listener(on_press=self.keyPress) as listener:
-    #         listener.join()
+    def keyPress(self, key):
+        key = str(key).replace("'", "")
+        if key == 'q':
+            self.exit = True
+        if key == 'm':
+            self.mode = "manual"
+        if key == "a":
+            self.mode = "auto"
+
+        if key == 't':
+            self.tracking_start = True
+
+    def keyboard_monitor(self):
+        with Listener(on_press=self.keyPress) as listener:
+            listener.join()
 
     def controller_monitor(self):
         while not self.exit:
