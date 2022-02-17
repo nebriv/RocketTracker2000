@@ -14,7 +14,7 @@ import serial
 from utils.xbox import XboxController
 import inputs
 
-testing = True
+testing = False
 tracking_lost_max_frames = 30
 
 WEBCAM = 1
