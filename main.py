@@ -19,9 +19,10 @@ from utils.camera import WebcamVideoStream
 import traceback
 import datetime
 
-tracking_lost_max_frames = 15
 
-WEBCAM = 0
+tracking_lost_max_frames = 15
+tracking_video_scaling = 100
+WEBCAM = 1
 
 COMM_PORT = "COM3"
 # OR IP
@@ -46,7 +47,7 @@ class RocketTracker:
 
     mode = "auto"
     wc = False
-    testing = False
+    testing = True
 
     def __init__(self):
         try:
@@ -63,10 +64,7 @@ class RocketTracker:
         controller_monitor.start()
 
         print("Starting video input")
-        if self.testing:
-            self.wc = cv2.VideoCapture("test_videos/3.mp4")
-        else:
-            self.wc = WebcamVideoStream(src=WEBCAM).start()
+        self.wc = WebcamVideoStream(src=WEBCAM).start()
 
         # self.wc = cv2.VideoCapture("rtmp://127.0.0.1:1935/live/test2")
         # frame, err = self.wc.read()
@@ -91,7 +89,10 @@ class RocketTracker:
         if key == 'q':
             self.exit = True
         if key == 'm':
-            self.mode = "manual"
+            if self.mode == "manual":
+                self.mode = "auto"
+            else:
+                self.mode = "manual"
         if key == "a":
             self.mode = "auto"
 
@@ -118,6 +119,11 @@ class RocketTracker:
                 else:
                     self.testing = True
 
+            if self.joy_input['b'] == 1:
+                if self.mode == "manual":
+                    self.mode = "auto"
+                else:
+                    self.mode = "manual"
 
     def exit_handler(self):
         print("Good bye.")
@@ -147,8 +153,8 @@ class RocketTracker:
         print("Reading frame to setup Camera Controller")
         frame = self.wc.read()
         #
-        width = int(frame.shape[1] * 50 / 100)
-        height = int(frame.shape[0] * 50 / 100)
+        width = int(frame.shape[1] * tracking_video_scaling / 100)
+        height = int(frame.shape[0] * tracking_video_scaling / 100)
         #
         try:
             frame = cv2.resize(frame, (width, height))
@@ -167,9 +173,35 @@ class RocketTracker:
             frame = self.wc.read()
             # frame = cv2.resize(frame, (width, height))
             if self.joy.connected:
-                cv2.putText(frame, 'Press Start to Select Tracking Object', (int(frame.shape[0] / 2) + 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                cv2.putText(frame, 'Press Start to Select Tracking Object', (int(frame.shape[0] / 2), int(frame.shape[1] / 2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             else:
                 cv2.putText(frame, 'Press T to Select Tracking Object', (int(frame.shape[0] / 2) + 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+            cv2.putText(frame, 'Frame time: n/a',
+                        (5, int(frame.shape[0] - 20)), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1)
+            cv2.putText(frame, 'FPS: %s' % "2",
+                        (5, int(frame.shape[0] - 5)), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1)
+
+            # Add controls top left
+            cv2.putText(frame, 'Preview: t/a',
+                        (5, 12), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
+            cv2.putText(frame, 'Manual Control: m/b',
+                        (5, 27), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
+            cv2.putText(frame, 'Stop: q',
+                        (5, 42), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
+
+            cv2.putText(frame, "Nebriv's Rocket Tracker 2000",
+                        (int(frame.shape[1] - 500), 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        (0, 0, 255), 2)
+
+            # Control modes bottom right
+            cv2.putText(frame, 'Control Mode: PREVIEW',
+                        (int(frame.shape[1] - 185), int(frame.shape[0] - 5)), cv2.FONT_HERSHEY_SIMPLEX, .5,
+                        (255, 255, 255), 1)
+            cv2.putText(frame, 'Controller Connected: %s' % self.joy.connected,
+                        (int(frame.shape[1] - 215), int(frame.shape[0] - 20)), cv2.FONT_HERSHEY_SIMPLEX, .5,
+                        (255, 255, 255), 1)
+
             cv2.imshow('Preview', frame)
             if self.joy.connected:
                 Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f'],)).start()
@@ -177,7 +209,10 @@ class RocketTracker:
             if cv2.waitKey(1) & 0XFF == 27:
                 break
         fps.stop()
-        print(fps.fps())
+        try:
+            print("Preview FPS: %s" % fps.fps())
+        except ZeroDivisionError as err:
+            pass
 
         cv2.destroyAllWindows()
         frame = self.wc.read()
@@ -196,10 +231,38 @@ class RocketTracker:
                 frame = self.wc.read()
                 clean_frame = frame.copy()
                 new_frame_time = time.time()
-                fps = 1 / (new_frame_time - prev_frame_time)
-                prev_frame_time = new_frame_time
-                fps = str(int(fps))
-                # cv2.putText(clean_frame, fps, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
+                try:
+                    fps = 1 / (new_frame_time - prev_frame_time)
+                    prev_frame_time = new_frame_time
+                    fps = str(int(fps))
+                except ZeroDivisionError as err:
+                    fps = "0"
+                # Add timestamp info bottom left
+                cv2.putText(frame, 'Frame time: %s' % datetime.datetime.now().timestamp(),
+                            (5, int(frame.shape[0] - 20)), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1)
+                cv2.putText(frame, 'FPS: %s' % fps,
+                            (5, int(frame.shape[0] - 5)), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1)
+
+                # Add controls top left
+                cv2.putText(frame, 'Preview: t/a',
+                            (5, 12), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
+                cv2.putText(frame, 'Manual Control: m',
+                            (5, 27), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
+                cv2.putText(frame, 'Stop: q',
+                            (5, 42), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
+
+                cv2.putText(frame, "Nebriv's Rocket Tracker 2000",
+                            (int(frame.shape[1] - 500), 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                            (0, 0, 255), 2)
+
+                # Control modes bottom right
+                cv2.putText(frame, 'Control Mode: %s' % self.mode,
+                            (int(frame.shape[1] - 175), int(frame.shape[0] - 5)), cv2.FONT_HERSHEY_SIMPLEX, .5,
+                            (255, 255, 255), 1)
+                cv2.putText(frame, 'Controller Connected: %s' % self.joy.connected,
+                            (int(frame.shape[1] - 215), int(frame.shape[0] - 20)), cv2.FONT_HERSHEY_SIMPLEX, .5,
+                            (255, 255, 255), 1)
+
                 if self.mode == "auto":
                     frame = cv2.resize(frame, (width, height))
                     ok, bbox = tracker.update(frame)
@@ -212,12 +275,10 @@ class RocketTracker:
                         except Exception as err:
                             print("CAUGHT ERROR: %s" % err)
                     else:
-                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 50, 50), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255), 2)
+                        cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2), 75), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255), 2)
                         tracking_lost_frame_count += 1
 
 
-                    # Add timestamp
-                    cv2.putText(frame, 'Frame time: %s' % datetime.datetime.now().timestamp(), (5, 350), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 2)
                     if tracking_lost_frame_count > tracking_lost_max_frames:
                         print("Switching to manual mode, tracking lost for more than %s frames." % tracking_lost_max_frames)
                         Thread(target=self.scene_switch, args=(7,)).start()
@@ -231,10 +292,8 @@ class RocketTracker:
                         break
 
                 elif self.mode == "manual":
-                    cv2.putText(frame, '------ MANUAL CONTROL ------', (int(frame.shape[0] / 2) + 50, 50),
+                    cv2.putText(frame, '------ MANUAL CONTROL ------', (int(frame.shape[0] / 2) + 50, 75),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    cv2.putText(frame, 'Frame time: %s' % datetime.datetime.now().timestamp(), (5, 350),
-                                cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 2)
                     cv2.imshow("Tracking Frame", frame)
                     # cv2.imshow("Clean Frame", frame)
                     Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f'])).start()
