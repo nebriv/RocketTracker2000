@@ -19,7 +19,7 @@ from utils.camera import WebcamVideoStream
 import traceback
 import datetime
 
-tracking_lost_max_frames = 30
+tracking_lost_max_frames = 20
 
 WEBCAM = 0
 
