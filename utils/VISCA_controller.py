@@ -248,21 +248,6 @@ class controller:
     def camera_manual_focus(self):
         self.send_command('8101043803FF')
 
-    def camera_set_focus(self, speed):
-        code = '81010408'
-        speed_hex = f'{abs(speed):x}'
-
-        if speed == 0:
-            direction_hex = '0'
-        elif speed > 0:
-            direction_hex = '2'
-        else:
-            direction_hex = '3'
-
-        code = code + direction_hex + speed_hex + "FF"
-        self.send_command(code)
-
-
     def move(self, x_error, y_error, z_error, focus=0):
         """
         Generates VISCA commands to move PTZOptics Camera
@@ -336,7 +321,21 @@ class controller:
             focus_speed = int(focus * 7)
         elif focus < 0 - self.f_threshold:
             focus_speed = int(focus * 7)
-        self.camera_set_focus(focus_speed)
+
+        if abs(focus_speed) > 0:
+            code = '81010408'
+            speed_hex = f'{abs(focus_speed):x}'
+
+            if focus_speed == 0:
+                direction_hex = '0'
+            elif focus_speed > 0:
+                direction_hex = '2'
+            else:
+                direction_hex = '3'
+
+            focus_command = code + direction_hex + speed_hex + "FF"
+
+            self.send_command(focus_command)
 
     def send_command(self, command):
         """
