@@ -11,6 +11,8 @@ from utils.utils import DominantColors
 import atexit
 from pynput.keyboard import Key, Listener
 import serial
+
+
 testing = False
 
 WEBCAM = 1
@@ -112,10 +114,11 @@ class RocketTracker:
         # frame = cv2.resize(frame, (1660, 1240))
         bbox = cv2.selectROI(frame)
         ok = tracker.init(frame, bbox)
-
+        cv2.destroyAllWindows()
         try:
             while not self.exit:
                 ok, frame = video.read()
+                clean_frame = frame.copy()
                 # if frame.shape[0]+500 > screensize[0]:
                 #     frame = cv2.resize(frame, (int(round(frame.shape[1]/1.7, 0)), int(round(frame.shape[0]/1.7, 0))))
                 # frame = cv2.resize(frame, (1660, 1240))
@@ -133,7 +136,10 @@ class RocketTracker:
 
                 else:
                     cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                cv2.putText(frame, 'Error', (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                frame = cv2.resize(frame, (int(round(frame.shape[1] / 2.5, 0)), int(round(frame.shape[0] / 2.5, 0))))
                 cv2.imshow('Tracking', frame)
+                cv2.imshow("Clean Frame", clean_frame)
                 if cv2.waitKey(1) & 0XFF == 27:
                     break
             cv2.destroyAllWindows()

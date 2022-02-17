@@ -66,7 +66,7 @@ class controller:
         self.shape_list = [0.6, 0.76, 1, 1.32, 1.96, 2.2, 3, 5, 7, 21, 81]
 
         #pan/tilt parameters initial values
-        self.p_gain = 0.4 #contribution of p component to total error
+        self.p_gain = 0.2 #contribution of p component to total error
         self.p_slope = 1.0 # slope of proportional error response
         self.p_shape = 6 # index of shape for proportional error
         self.i_gain = 0 #contribution of i component to total error
