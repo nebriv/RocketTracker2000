@@ -3,6 +3,7 @@ import cv2
 import sys
 import numpy as np
 import serial
+from utils import PID
 
 
 
@@ -10,7 +11,7 @@ class controller:
     """
     PID controller for VISCA over IP camera
     """
-    def __init__(self, width, height, ip_address=None, port=52381, serial_port=None) -> None:
+    def __init__(self, width, height, ip_address=None, port=52381, serial_port=None, sample_time=0.03) -> None:
         """
         new controller instance
         :param width: width of input frame
@@ -42,7 +43,19 @@ class controller:
         self.target_x = 640 #int(width/2)
         self.target_y = 360 #int(height/2)
         self.target_z = 106 #int(width/12)
-        
+        P = 10
+        I = 1
+        D = 1
+
+        self.pid_x = PID.PID(P, I, D)
+        self.pid_x.SetPoint = self.target_x
+        self.pid_x.setSampleTime(sample_time)
+
+        self.pid_y = PID.PID(P, I, D)
+        self.pid_y.SetPoint = self.target_y
+        self.pid_y.setSampleTime(sample_time)
+
+        self.pid_z = PID.PID(P, I, D)
 
         #motor saturation for integral, stops summing if saturated
         self.x_unsaturated = True
@@ -146,30 +159,36 @@ class controller:
         z_error = 0
         print("Raw x_error: %s - Raw y_error: %s - Raw z_error: %s" % (x_error, y_error, z_error))
         
-        #calculate PID error
-        px, py, pz = self.calculate_p(x_error, y_error, z_error)
-        ix, iy, iz = self.calculate_i(x_error, y_error, z_error)
-        dy, dx, dz = self.calculate_d(x_error, y_error, z_error)
-        print("Calculated PX: %s" % px)
+        # #calculate PID error
+        # px, py, pz = self.calculate_p(x_error, y_error, z_error)
+        # ix, iy, iz = self.calculate_i(x_error, y_error, z_error)
+        # dy, dx, dz = self.calculate_d(x_error, y_error, z_error)
+        # print("Calculated PX: %s" % px)
+        #
+        # #adjust for gain. Assumes gains add up to 1
+        # px *= self.p_gain
+        # py *= self.p_gain
+        # pz *= self.z_p_gain
+        #
+        # ix *= self.i_gain
+        # iy *= self.i_gain
+        # iz *= self.z_i_gain
+        #
+        # dy *= self.d_gain
+        # dx *= self.d_gain
+        # dz *= self.z_d_gain
+        #
+        # x_pid_error = px + ix + dx
+        # y_pid_error = py + iy + dy
+        # z_pid_error = pz + iz + dz
+        # self.move(x_pid_error, y_pid_error, z_pid_error)
+        self.pid_x.update(x_error)
+        self.pid_y.update(y_error)
 
-        #adjust for gain. Assumes gains add up to 1
-        px *= self.p_gain
-        py *= self.p_gain
-        pz *= self.z_p_gain
+        print("X PID OUTPUT: %s" % self.pid_x.output)
+        print("Y PID OUTPUT: %s" % self.pid_y.output)
 
-        ix *= self.i_gain
-        iy *= self.i_gain
-        iz *= self.z_i_gain
-
-        dy *= self.d_gain
-        dx *= self.d_gain
-        dz *= self.z_d_gain
-
-        x_pid_error = px + ix + dx
-        y_pid_error = py + iy + dy
-        z_pid_error = pz + iz + dz
-
-        self.move(x_pid_error, y_pid_error, z_pid_error)
+        self.move(self.pid_x.output, self.pid_y.output, 0)
 
     def camera_go_home(self):
         self.send_command('81010604FF')
