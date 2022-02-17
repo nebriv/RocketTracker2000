@@ -19,17 +19,6 @@ from utils.camera import WebcamVideoStream
 import traceback
 import datetime
 
-
-keyboard = Controller()
-keyboard.press(Key.ctrl)
-keyboard.press(Key.alt)
-keyboard.press('7')
-time.sleep(2)
-keyboard.release(Key.ctrl)
-keyboard.release(Key.alt)
-keyboard.release('7')
-exit()
-
 tracking_lost_max_frames = 30
 
 WEBCAM = 0
@@ -86,6 +75,16 @@ class RocketTracker:
         time.sleep(2)
         self.video_tracker()
         self.wc.stop()
+
+    def scene_switch(self, scene_number):
+        keyboard = Controller()
+        keyboard.press(Key.ctrl)
+        keyboard.press(Key.alt)
+        keyboard.press(str(scene_number))
+        time.sleep(.1)
+        keyboard.release(Key.ctrl)
+        keyboard.release(Key.alt)
+        keyboard.release(str(scene_number))
 
     def keyPress(self, key):
         key = str(key).replace("'", "")
@@ -216,10 +215,12 @@ class RocketTracker:
                         cv2.putText(frame, '------ TRACKING LOST! ------', (int(frame.shape[0] / 2) + 50, 50), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255), 2)
                         tracking_lost_frame_count += 1
 
+
                     # Add timestamp
                     cv2.putText(frame, 'Frame time: %s' % datetime.datetime.now().timestamp(), (5, 350), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 2)
                     if tracking_lost_frame_count > tracking_lost_max_frames:
                         print("Switching to manual mode, tracking lost for more than %s frames." % tracking_lost_max_frames)
+                        Thread(target=self.scene_switch, args=(7,)).start()
                         self.mode = "manual"
 
                     if self.testing:
