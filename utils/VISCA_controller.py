@@ -66,7 +66,7 @@ class controller:
         self.shape_list = [0.6, 0.76, 1, 1.32, 1.96, 2.2, 3, 5, 7, 21, 81]
 
         #pan/tilt parameters initial values
-        self.p_gain = 0.5 #contribution of p component to total error
+        self.p_gain = 0.3 #contribution of p component to total error
         self.p_slope = 1.0 # slope of proportional error response
         self.p_shape = 6 # index of shape for proportional error
         self.i_gain = 0 #contribution of i component to total error
@@ -77,8 +77,8 @@ class controller:
 
         # camera does not move unless error 
         # error is greater than threshold
-        self.x_threshold = 0.2
-        self.y_threshold = 0.2
+        self.x_threshold = 0.4
+        self.y_threshold = 0.4
 
         #zoom parameters initial values
         self.z_p_gain = 1
@@ -283,6 +283,7 @@ class controller:
         """
         #proportional error calculated as slope/10 x^shape
         #error is clamped between 1 and -1
+        print("DEBUG: %s" % (self.p_slope/10) * x_error**self.shape_list[self.p_shape])
         px = max(-1.0, min(1.0, (self.p_slope/10) * x_error**self.shape_list[self.p_shape]))
         py = max(-1.0, min(1.0, (self.p_slope/10) * y_error**self.shape_list[self.p_shape]))
         pz = max(-1.0, min(1.0, (self.z_p_slope/10) * z_error**self.shape_list[self.z_p_shape]))
