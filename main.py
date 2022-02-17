@@ -80,7 +80,7 @@ class RocketTracker:
             print("Unable to get video feed")
             exit()
         try:
-            self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT)
+            self.controller = controller(frame.shape[1], frame.shape[0], serial_port=COMM_PORT, sample_time=1)
         except Exception as err:
             print(err)
             exit()
@@ -117,6 +117,7 @@ class RocketTracker:
         cv2.destroyAllWindows()
         try:
             while not self.exit:
+                time.sleep(1)
                 ok, frame = video.read()
                 clean_frame = frame.copy()
                 # if frame.shape[0]+500 > screensize[0]:
