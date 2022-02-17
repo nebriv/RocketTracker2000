@@ -137,9 +137,9 @@ class RocketTracker:
         except Exception as err:
             print(err)
             exit()
-        #
-        # print("Enabling manual focus")
-        # self.controller.camera_manual_focus()
+
+        print("Enabling manual focus")
+        self.controller.camera_manual_focus()
 
         print("Showing preview")
         fps = FPS().start()
@@ -152,7 +152,7 @@ class RocketTracker:
                 cv2.putText(frame, 'Press T to Select Tracking Object', (int(frame.shape[0] / 2) + 100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             cv2.imshow('Preview', frame)
             if self.joy.connected:
-                Thread(target=self.controller.move, args=(self.joy_input['x'], self.joy_input['y'], self.joy_input['z'], self.joy_input['f'],)).start()
+                Thread(target=self.controller.move, args=(self.joy_input['x']/2, self.joy_input['y']/2, self.joy_input['z']/2, self.joy_input['f'],)).start()
             fps.update()
             if cv2.waitKey(1) & 0XFF == 27:
                 break
