@@ -129,7 +129,7 @@ class RocketTracker:
             self.video = cv2.VideoCapture("test_videos/3.mp4")
         else:
             # self.video = cv2.VideoCapture(WEBCAM)
-            self.wc = WebcamVideoStream().start()
+            self.wc = WebcamVideoStream(src=WEBCAM).start()
             # self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
             # self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
             # print(self.video.get(cv2.CAP_PROP_FRAME_HEIGHT))
