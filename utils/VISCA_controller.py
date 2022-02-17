@@ -90,8 +90,8 @@ class controller:
 
         # camera does not move unless error 
         # error is greater than threshold
-        self.x_threshold = 0.4
-        self.y_threshold = 0.4
+        self.x_threshold = 0.1
+        self.y_threshold = 0.1
 
         #zoom parameters initial values
         self.z_p_gain = 1
@@ -140,6 +140,48 @@ class controller:
 
 
     def follow(self, box):
+        x, y, w, h = box
+        center_x = x + w/2
+        center_y = y + h/2
+        print("Box Center X: %s - Box Center Y: %s" % (center_x, center_y))
+
+        x_error = center_x - self.target_x
+        y_error = center_y - self.target_y
+
+        print("X %s - Y %s" % (x_error, y_error))
+
+        x_error = x_error * .001
+        y_error = y_error * .001
+        print("X %s - Y %s" % (x_error, y_error))
+
+        # build VISCA hex command
+        command_type = '81010601'
+        pan_speed = '00'
+        tilt_speed = '00'
+        pan_direction = '03'
+        tilt_direction = '03ff'
+        zoom_header = '81010407'
+        zoom_speed = '00ff'
+
+        # get magnitiude and direction in hex for x and y
+        if x_error > self.x_threshold:
+            pan_speed = str(int(x_error * 24)).zfill(2)
+            pan_direction = '02'
+        elif x_error < 0 - self.x_threshold:
+            pan_speed = str(int(x_error * -24)).zfill(2)
+            pan_direction = '01'
+
+        if y_error > self.y_threshold:
+            tilt_speed = str(int(y_error * 20)).zfill(2)
+            tilt_direction = '02ff'
+        elif y_error < 0 - self.y_threshold:
+            tilt_speed = str(int(y_error * -20)).zfill(2)
+            tilt_direction = '01ff'
+
+        command = (command_type + pan_speed + tilt_speed + pan_direction + tilt_direction)
+        self.send_command(command)
+
+    def follow_pid(self, box):
         """
         Moves camera to follow a bounding box in the frame.
         :param box: tuple containing box upper left corner x, y, width, and height
