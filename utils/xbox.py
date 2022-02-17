@@ -40,7 +40,7 @@ class XboxController(object):
         a = self.A
         b = self.X # b=1, x=2
         rb = self.RightBumper
-        return [x, y, a, b, rb]
+        return [x, y]
 
 
     def _monitor_controller(self):

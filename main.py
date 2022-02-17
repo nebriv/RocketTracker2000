@@ -154,7 +154,7 @@ class RocketTracker:
 
                 elif self.mode == "manual":
                     print(self.joy.read())
-                    x, y = self.joy.read()[0-1]
+                    x, y = self.joy.read()
                     self.controller.move(x, y)
 
         except KeyboardInterrupt:
