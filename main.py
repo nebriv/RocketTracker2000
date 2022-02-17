@@ -21,7 +21,7 @@ import traceback
 
 tracking_lost_max_frames = 30
 
-WEBCAM = 0
+WEBCAM = 1
 
 COMM_PORT = "COM3"
 # OR IP
@@ -137,6 +137,7 @@ class RocketTracker:
         except Exception as err:
             print(err)
             exit()
+
         print("Enabling autofocus")
         self.controller.camera_enable_autofocus()
         #
