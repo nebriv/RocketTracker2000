@@ -137,10 +137,10 @@ class RocketTracker:
 
 
     def video_tracker(self):
-        if self.testing:
-            print("TESTING MODE ENABLED!")
-        else:
-            print("TEST MODE IS NOT ENABLED")
+        # if self.testing:
+        #     print("TESTING MODE ENABLED!")
+        # else:
+        #     print("TEST MODE IS NOT ENABLED")
 
         if self.joy.connected:
             print("Controller connected!")
