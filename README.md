@@ -1,3 +1,11 @@
+# Installation
+1. Download repo
+2. pythom -m venv venv
+3. venv\Scripts\activate
+4. pip install -r requirements
+
+Recommend using something like SplitCam and RTMP to capture the raw camera output at full FPS due to the frame drops in the script.
+
 # Start up
 
 1. Connect XBox Controller
@@ -15,9 +23,6 @@
 13. Sit back and relax
 14. ???
 15. Profit
-
-
-
 
 
 # Dev Notes
