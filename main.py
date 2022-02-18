@@ -171,7 +171,7 @@ class RocketTracker:
         fps = FPS().start()
         while not self.exit and not self.tracking_start:
             frame = self.wc.read()
-            
+
             if self.joy.connected:
                 cv2.putText(frame, 'Press Start to Select Tracking Object', (int(frame.shape[0] / 2), int(frame.shape[1] / 2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             else:
@@ -190,7 +190,7 @@ class RocketTracker:
             cv2.putText(frame, 'Stop: q',
                         (5, 42), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
 
-            cv2.putText(frame, "Nebriv's Rocket Tracker 2000",
+            cv2.putText(frame, "SRF's Rocket Tracker 2000",
                         (int(frame.shape[1] - 500), 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
                         (0, 0, 255), 2)
 
@@ -251,7 +251,7 @@ class RocketTracker:
                 cv2.putText(frame, 'Stop: q',
                             (5, 42), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1)
 
-                cv2.putText(frame, "Nebriv's Rocket Tracker 2000",
+                cv2.putText(frame, "SRF's Rocket Tracker 2000",
                             (int(frame.shape[1] - 500), 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
                             (0, 0, 255), 2)
 
